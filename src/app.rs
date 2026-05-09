@@ -142,5 +142,7 @@ impl App {
         Text::from(file_list).left_aligned().render(area, buf);
     }
 
-    fn render_bottom_bar(area: Rect, buf: &mut Buffer) {}
+    fn render_bottom_bar(area: Rect, buf: &mut Buffer) {
+        Text::from("Status line").render(area, buf);
+    }
 }
