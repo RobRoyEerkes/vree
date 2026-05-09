@@ -159,7 +159,7 @@ impl Widget for &App {
 }
 impl App {
     fn render_title_bar(&self, area: Rect, buf: &mut Buffer) {
-        Text::from(self.dir.to_string_lossy()).render(area, buf);
+        Text::from(self.dir.to_string_lossy() + "/").render(area, buf);
     }
 
     fn render_files(&self, area: Rect, buf: &mut Buffer) {

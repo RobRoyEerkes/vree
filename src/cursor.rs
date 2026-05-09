@@ -13,6 +13,7 @@ enum InputMode {
     Normal,
     Insert,
     Visual,
+    Command,
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
@@ -54,5 +55,9 @@ impl Cursor {
 
     pub fn normal_mode(&mut self) {
         self.input_mode = InputMode::Normal;
+    }
+
+    pub fn command_mode(&mut self) {
+        self.input_mode = InputMode::Command;
     }
 }
