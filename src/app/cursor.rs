@@ -20,6 +20,7 @@ enum InputMode {
 pub struct Cursor {
     input_mode: InputMode,
     pos: Position,
+    prev_pos: Position,
 }
 
 #[allow(dead_code)]
@@ -54,10 +55,18 @@ impl Cursor {
     }
 
     pub fn normal_mode(&mut self) {
+        if self.input_mode == InputMode::Command {
+            self.pos = self.prev_pos;
+        }
         self.input_mode = InputMode::Normal;
     }
 
     pub fn command_mode(&mut self) {
+        self.prev_pos = self.pos;
+        self.pos = Position {
+            x: Position::MIN.x,
+            y: Position::MAX.y,
+        };
         self.input_mode = InputMode::Command;
     }
 }
