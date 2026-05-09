@@ -27,7 +27,7 @@ impl Cursor {
         Self::default()
     }
 
-    pub fn ldur(&mut self, direction: Direction) {
+    pub fn shift(&mut self, direction: Direction) {
         match direction {
             Direction::Left => self.pos = self.pos.offset(Offset { x: -1, y: 0 }),
             Direction::Down => self.pos = self.pos.offset(Offset { x: 0, y: 1 }),

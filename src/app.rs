@@ -82,14 +82,14 @@ impl App {
             match key.code {
                 event::KeyCode::Char('q') | event::KeyCode::Esc => self.mode = Mode::Quit,
                 event::KeyCode::Char('h') | event::KeyCode::Left => {
-                    self.cursor.ldur(Direction::Left)
+                    self.cursor.shift(Direction::Left)
                 }
                 event::KeyCode::Char('j') | event::KeyCode::Down => {
-                    self.cursor.ldur(Direction::Down)
+                    self.cursor.shift(Direction::Down)
                 }
-                event::KeyCode::Char('k') | event::KeyCode::Up => self.cursor.ldur(Direction::Up),
+                event::KeyCode::Char('k') | event::KeyCode::Up => self.cursor.shift(Direction::Up),
                 event::KeyCode::Char('l') | event::KeyCode::Right => {
-                    self.cursor.ldur(Direction::Right)
+                    self.cursor.shift(Direction::Right)
                 }
                 event::KeyCode::Backspace => {
                     if let Some(parent) = self.dir.parent() {
