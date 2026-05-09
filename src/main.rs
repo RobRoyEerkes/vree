@@ -1,6 +1,8 @@
 mod app;
-
-fn main() -> std::io::Result<()> {
+mod cursor;
+use color_eyre::Result;
+fn main() -> Result<()> {
+    color_eyre::install()?;
     let args: Vec<String> = std::env::args().collect();
 
     if args.contains(&String::from("-h")) {
@@ -12,9 +14,9 @@ fn main() -> std::io::Result<()> {
         std::io::Error::new(std::io::ErrorKind::InvalidInput, "Check flags")
     })?;
 
-    let mut terminal = ratatui::init();
+    let terminal = ratatui::init();
 
-    let result = a.run(&mut terminal);
+    let result = a.run(terminal);
 
     ratatui::restore();
     result
