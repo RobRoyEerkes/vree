@@ -6,7 +6,7 @@ use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Widget};
 use ratatui::{DefaultTerminal, Frame};
-use std::{fs::ReadDir, path::PathBuf, time::Duration};
+use std::{path::PathBuf, time::Duration};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Flags {
@@ -20,16 +20,18 @@ enum Mode {
     Quit,
 }
 
-#[derive(Debug, Default, Clone, PartialEq, Eq)]
+#[derive(Debug, Default)]
 pub struct App {
     dir: PathBuf,
     flags: Vec<Flags>,
     mode: Mode,
     cursor: Cursor,
+    files: Vec<PathBuf>,
 }
 
 impl App {
     pub fn run(&mut self, mut terminal: DefaultTerminal) -> Result<()> {
+        self.get_files_in_current_dir()?;
         while self.is_running() {
             terminal.draw(|f| self.render(f))?;
             self.handle_events()?;
@@ -68,8 +70,42 @@ impl App {
         frame.set_cursor_position(self.cursor.get_pos());
     }
 
-    fn get_files_in_current_dir(&self) -> Option<ReadDir> {
-        Some(self.dir.read_dir().ok()?)
+    fn get_files_in_current_dir(&mut self) -> Result<()> {
+        let mut files: Vec<PathBuf> = self
+            .dir
+            .read_dir()?
+            .into_iter()
+            .flatten()
+            .map(|entry| entry.path())
+            .collect();
+        files.sort_by(|a, b| {
+            if a.is_dir() != b.is_dir() {
+                b.is_dir().cmp(&a.is_dir())
+            } else {
+                a.cmp(b)
+            }
+        });
+        self.files = files;
+
+        Ok(())
+    }
+
+    fn enter_on_cursor(&mut self) -> Result<()> {
+        let y: usize = self.cursor.get_pos().y.into();
+
+        if self.files.len() < y {
+            return Ok(());
+        }
+
+        match self.files[y - 1].metadata() {
+            Ok(t) if t.is_dir() => {
+                self.dir = self.files[y - 1].clone();
+                self.get_files_in_current_dir()?
+            }
+            Ok(_) => todo!("symlink, file, error"),
+            Err(e) => return Err(e.into()),
+        }
+        Ok(())
     }
 
     fn handle_events(&mut self) -> Result<()> {
@@ -93,13 +129,11 @@ impl App {
                 }
                 event::KeyCode::Backspace => {
                     if let Some(parent) = self.dir.parent() {
-                        self.dir = PathBuf::from(parent)
+                        self.dir = PathBuf::from(parent);
                     }
+                    self.get_files_in_current_dir()?;
                 }
-                event::KeyCode::Enter => {
-                    todo!("enter directory, or open file")
-                }
-
+                event::KeyCode::Enter => self.enter_on_cursor()?,
                 _ => {}
             };
         }
@@ -113,7 +147,7 @@ impl Widget for &App {
         let layout = Layout::vertical([
             Constraint::Length(1),
             Constraint::Min(0),
-            Constraint::Length(1),
+            Constraint::Length(2),
         ]);
         let [title_bar, tab, bottom_bar] = area.layout(&layout);
 
@@ -129,17 +163,20 @@ impl App {
     }
 
     fn render_files(&self, area: Rect, buf: &mut Buffer) {
-        let file_list: Vec<Line> = self
-            .get_files_in_current_dir()
-            .into_iter()
-            .flatten()
-            .filter_map(|entry| entry.ok())
-            .map(|entry| {
-                let name = entry.file_name().to_string_lossy().into_owned();
-                Line::from(name)
+        let lines: Vec<Line> = self
+            .files
+            .iter()
+            .filter_map(|entry| {
+                let mut name = entry.file_name()?.to_string_lossy();
+
+                if entry.is_dir() {
+                    name.to_mut().push('/');
+                }
+
+                Some(Line::from(name))
             })
             .collect();
-        Text::from(file_list).left_aligned().render(area, buf);
+        Text::from(lines).left_aligned().render(area, buf);
     }
 
     fn render_bottom_bar(area: Rect, buf: &mut Buffer) {
