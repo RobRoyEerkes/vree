@@ -8,7 +8,7 @@ pub enum Direction {
 }
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
-enum InputMode {
+pub enum InputMode {
     #[default]
     Normal,
     Insert,
@@ -18,7 +18,7 @@ enum InputMode {
 
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
 pub struct Cursor {
-    input_mode: InputMode,
+    pub input_mode: InputMode,
     pos: Position,
     prev_pos: Position,
 }
@@ -38,7 +38,7 @@ impl Cursor {
         };
     }
     pub fn reset(&mut self) {
-        self.pos = Position::default();
+        self.pos = Position { x: 0, y: 0 };
         self.input_mode = InputMode::Normal;
     }
 
@@ -64,8 +64,8 @@ impl Cursor {
     pub fn command_mode(&mut self) {
         self.prev_pos = self.pos;
         self.pos = Position {
-            x: Position::MIN.x,
-            y: Position::MAX.y,
+            x: 0,
+            y: Position::MAX.y - 1,
         };
         self.input_mode = InputMode::Command;
     }

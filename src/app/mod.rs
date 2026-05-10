@@ -28,6 +28,7 @@ pub struct App {
     mode: Mode,
     cursor: Cursor,
     files: Vec<PathBuf>,
+    command: String,
 }
 
 impl App {
@@ -105,7 +106,7 @@ impl App {
             }
             Ok(_) => todo!("symlink, file, error"),
             Err(e) => return Err(e.into()),
-        }
+        };
         Ok(())
     }
 }
@@ -115,14 +116,14 @@ impl Widget for &App {
         let layout = Layout::vertical([
             Constraint::Length(1),
             Constraint::Min(0),
-            Constraint::Length(2),
+            Constraint::Length(1),
         ]);
         let [title_bar, tab, bottom_bar] = area.layout(&layout);
 
         Block::new().render(area, buf);
         self.render_title_bar(title_bar, buf);
         self.render_files(tab, buf);
-        App::render_bottom_bar(bottom_bar, buf);
+        self.render_bottom_bar(bottom_bar, buf);
     }
 }
 impl App {
@@ -147,7 +148,7 @@ impl App {
         Text::from(lines).left_aligned().render(area, buf);
     }
 
-    fn render_bottom_bar(area: Rect, buf: &mut Buffer) {
-        Text::from("Status line").render(area, buf);
+    fn render_bottom_bar(&self, area: Rect, buf: &mut Buffer) {
+        Text::from(Line::from(self.command.clone())).render(area, buf);
     }
 }
